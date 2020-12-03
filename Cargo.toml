@@ -1,0 +1,12 @@
+[package]
+name = "differential-game-of-life"
+version = "0.1.0"
+authors = ["Ruchir Khaitan <ruchir0001@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+backtrace = "0.3"
+timely = { git = "https://github.com/TimelyDataflow/timely-dataflow" }
+differential-dataflow = { git = "https://github.com/TimelyDataflow/differential-dataflow" }
