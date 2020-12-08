@@ -17,7 +17,9 @@ fn main() {
             (first_handle, second_handle)
         });
 
+        // Send some sample data to our dataflow
         for i in 0..10 {
+            // Advance logical time to i
             first.advance_to(i);
             second.advance_to(i);
 

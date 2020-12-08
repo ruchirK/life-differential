@@ -1,16 +1,19 @@
 use differential_dataflow::input::Input;
 use differential_dataflow::operators::{Iterate, Threshold};
-use differential_dataflow::Collection;
-use timely::dataflow::scopes::Child;
 
 fn main() {
+    let limit: u64 = std::env::args()
+        .nth(1)
+        .map(|x| x.parse().expect("limit must be a valid u64"))
+        .unwrap_or(100);
+
     timely::execute_directly(move |worker| {
-        worker.dataflow(|scope| {
-            let integers: Collection<Child<'_, _, u32>, (i32, String)> = scope
+        worker.dataflow::<u32, _, _>(|scope| {
+            let initial = scope
                 .new_collection_from(vec![(1, "".to_string())].into_iter())
                 .1;
 
-            let result = integers.iterate(|input| {
+            let result = initial.iterate(|input| {
                 let successors = input.map(|(x, _)| x + 1).map(|x| {
                     let str = if x % 3 == 0 && x % 5 == 0 {
                         "Fizz Buzz"
@@ -25,11 +28,12 @@ fn main() {
                     (x, str.to_string())
                 });
                 let output = input.concat(&successors).distinct();
-                output.filter(|(x, _)| *x <= 100)
+                output.filter(move |(x, _)| *x <= limit)
             });
 
-            result
-                .inspect(|(x, time, diff)| println!("x: {:?} time: {:?} diff: {}", x, time, diff));
+            result.inspect(|(x, time, m)| {
+                println!("x: {:?} time: {:?} multiplicity: {}", x, time, m)
+            });
         });
     })
 }

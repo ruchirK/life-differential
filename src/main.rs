@@ -21,7 +21,7 @@ fn main() {
             input_handle
         });
 
-        let inputs = vec![(2, 2), (2, 3), (2, 4)];
+        let inputs = vec![(2, 2), (2, 3), (2, 4), (3, 2)];
         for i in inputs.iter() {
             input.insert(*i);
         }
