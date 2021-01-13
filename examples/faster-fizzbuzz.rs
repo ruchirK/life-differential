@@ -1,6 +1,14 @@
 use differential_dataflow::input::Input;
 use differential_dataflow::operators::Iterate;
 
+#[derive(Debug,PartialOrd,PartialEq,Ord,Eq,Clone)]
+enum State {
+    None,
+    Fizz,
+    Buzz,
+    FizzBuzz,
+}
+
 fn main() {
     let limit: u64 = std::env::args()
         .nth(1)
@@ -9,9 +17,9 @@ fn main() {
 
     timely::execute_directly(move |worker| {
         worker.dataflow::<u32, _, _>(|scope| {
-            // Use integers instead of strings for "FizzBuzz" to avoid pointless
+            // Use an enum instead of strings for "FizzBuzz" to avoid pointless
             // churning on allocations.
-            let initial = scope.new_collection_from(vec![(1, 0)].into_iter()).1;
+            let initial = scope.new_collection_from(vec![(1, State::None)].into_iter()).1;
 
             // Start iterating with the empty collection (the filter is a handy
             // idiom for that). This simplifies the logic between iterations
@@ -22,17 +30,17 @@ fn main() {
                 // before it. Still O(limit) total work but we get to amortize
                 // the cost of iteration better.
                 let successors = input.flat_map(|(x, _)| vec![2 * x, 2 * x + 1]).map(|x| {
-                    let str = if x % 3 == 0 && x % 5 == 0 {
-                        3
+                    let state = if x % 3 == 0 && x % 5 == 0 {
+                        State::FizzBuzz
                     } else if x % 5 == 0 {
-                        2
+                        State::Buzz
                     } else if x % 3 == 0 {
-                        1
+                        State::Fizz
                     } else {
-                        0
+                        State::None
                     };
 
-                    (x, str)
+                    (x, state)
                 });
 
                 // Always only concatenate the initial element rather than the
